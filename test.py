@@ -1,1 +1,1 @@
-from DataPipline.PickFiles import *import timeimport datetimeRead_Data_csv()def Read_Data_csv_ForItems():    Files = [_ for _ in os.listdir(os.path.join('DataSource')) if _.split('_')[0] == 'Items']    Files = [os.path.join('DataSource',_) for _ in Files]    Files.sort(reverse = True)    return Files[0]# for f in Files:#     a = datetime.datetime.fromtimestamp(os.path.getmtime(f)).strftime('%Y-%m-%d %H:%M:%S')#     print(f'{a}')
+from DataPipline.PickFiles import *from ControlSQL.CreatTable import *Read_Data_csv()SelectDtype('Inv')
