@@ -86,6 +86,4 @@ def MergeData(zip_name,csv_name,Raw_data_file,final_Name,RawData):
                              ,index = False)
 
 
-# for f in Files:
-#     a = datetime.datetime.fromtimestamp(os.path.getmtime(f)).strftime('%Y-%m-%d %H:%M:%S')
-#     print(f'{a}')
+
