@@ -5,8 +5,8 @@ import os
 import pandas as pd
 
 def AutoCreatTable():
-    Files = os.listdir(os.path.join('RawData'))
-    FilesPath = [os.path.join('RawData',_) for _ in Files]
+    Files = [_ for _ in os.listdir(os.path.join('RawData')) if _.split('.')[1]=='csv']
+    FilesPath = [os.path.join('RawData',_) for _ in Files if _.split('.')[1]=='csv']
     
     
     
@@ -27,6 +27,8 @@ def AutoCreatTable():
     df = df.astype(str)
 
     for filename in Files:
+        print(filename)
+        # ChoseKey = filename.split('_')[0]1
     # key = 'Inv_test.csv'
 
         Columns = []
@@ -44,7 +46,8 @@ def AutoCreatTable():
         
         SqlSchema = str(tuple(SqlSchema)).replace("'",'')
         
-        SQL = f'CREATE TABLE IF NOT EXISTS `{filename}` {SqlSchema}'
+        TableName = filename.split('_')[0]
+        SQL = f'CREATE TABLE IF NOT EXISTS `{TableName}` {SqlSchema}'
         
         
         
