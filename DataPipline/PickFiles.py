@@ -1,5 +1,5 @@
 import datetime
-from dateutil.rrule import rrule, DAILY, MONTHLY
+# from dateutil.rrule import rrule, DAILY, MONTHLY
 import shutil
 import os
 import glob
@@ -9,11 +9,14 @@ import pandas as pd
 
 
 # 用於提取時間區間
-def date_range(start_date, end_date):
-    return [dt.date() for dt in rrule(DAILY, dtstart=start_date, until=end_date)]
+# def date_range(start_date, end_date):
+#     return [dt.date() for dt in rrule(DAILY, dtstart=start_date, until=end_date)]
 
 
-
+def ETLforString(OldSing,NewSing,String):
+    for old,new in zip(OldSing,NewSing):
+        String = String.replace(old,new)
+    return String
 
 def Read_Data_csv_ForItems():
     Files = [_ for _ in os.listdir(os.path.join('DataSource')) if _.split('_')[0] == 'Items']
@@ -30,7 +33,7 @@ def Read_Data_csv():
         os.mkdir(RawData)
 
 
-    final_Name = "_test.csv"
+    final_Name = "_.csv"
     Raw_data_files = ["Txn",'Inv','Refund','Void','Point']
     for Raw_data_file in Raw_data_files:
 
@@ -68,11 +71,15 @@ def MergeData(zip_name,csv_name,Raw_data_file,final_Name,RawData):
     with zipfile.ZipFile(zip_name,'r') as z:
         with z.open(csv_name) as f:
             print(f'正在合併 {csv_name}')
+            
             df = pd.read_csv(f 
                              # ,index_col=_index 
-                             ,chunksize = chunksize
+                              ,chunksize = chunksize
                              ,dtype = object) 
+            
+            
             for chunk in df:
+                chunk = chunk.apply(lambda x:x.replace(' ',''))
                 chunk.to_csv(os.path.join(RawData,f'{Raw_data_file}{final_Name}') 
                              ,mode = 'a+'
                              ,encoding = "utf-8-sig"

@@ -16,7 +16,7 @@ def AutoCreatTable():
     for File,FilePath in zip(Files,FilesPath):
         ChoseKey = File.split('_')[0]
         
-        TMPFilePath = pd.read_csv(FilePath,nrows = 1,dtype=SelectDtype(ChoseKey))
+        TMPFilePath = pd.read_csv(FilePath,nrows = 1 ,dtype=SelectDtype(ChoseKey))
         for columns,Dtype in zip(TMPFilePath.columns,TMPFilePath.dtypes):
             DataName.append(File)
             Columns.append(columns)
@@ -70,93 +70,93 @@ def SelectDtype(FileName):
         'sale_date'           : object   ,   
         'TillID'              : object    ,  
         'transaction_time'    : object   ,   
-        'TransactionId'       : 'int64'    ,  
-        'GlobalTxnID'         : 'int64'    ,  
-        'OperatorID'          : 'int64'    ,  
+        'TransactionId'       : object    ,  
+        'GlobalTxnID'         : object    ,  
+        'OperatorID'          : object    ,  
         'tran_tendered'       : 'float64'  ,    
-        'MediaType'           : 'int64'    ,  
+        'MediaType'           : object    ,  
         'Tendered'            : 'float64'  ,    
-        'CardNo'              : 'int64'    ,  
+        'CardNo'              : object    ,  
         'voucher_used'        : 'float64'  ,    
-        'credit_card'         : 'float64'  
+        'credit_card'         : object  
     },
     
     'Items' : {
-        'item_code'                : 'int64',
+        'item_code'                : object,
         'item_cdesc'               : object,
         'cost'                     : 'float64',
         'own_label'                : 'float64',
-        'vendor_code'              : 'int64',
+        'vendor_code'              : object,
         'sup_code'                 : object,
         'sup_cname'                : object,
-        'dept_code'                : 'int64',
-        'class_code'               : 'int64',
-        'subclass_code'            : 'int64'
+        'dept_code'                : object,
+        'class_code'               : object,
+        'subclass_code'            : object
     },
     
     'Point' :{
-        'store'                     : 'int64',
+        'store'                     : object,
         'sale_date'                 : object,
-        'TillID'                    : 'int64',
+        'TillID'                    : object,
         'transaction_time'          : object,
-        'TransactionId'             : 'int64',
-        'GlobalTxnID'               : 'int64',
-        'OperatorID'                : 'int64',
+        'TransactionId'             : object,
+        'GlobalTxnID'               : object,
+        'OperatorID'                : object,
         'tran_tendered'             : 'float64',
-        'CardNo'                    : 'int64',
-        'promotion_id'              : 'int64',
+        'CardNo'                    : object,
+        'promotion_id'              : object,
         'prom_desc'                 : object,
         'points_earned'             : 'float64'
     },
     
     
     'Refund' : {
-        'store'                     :'int64',
+        'store'                     :object,
         'sale_date'                 :object,
-        'TillID'                    :'int64',
+        'TillID'                    :object,
         'transaction_time'          :object,
-        'TransactionId'             :'int64',
-        'RsGlobalTxnID'             :'int64',
+        'TransactionId'             :object,
+        'RsGlobalTxnID'             :object,
         'tran_tendered'             :'float64',
-        'OperatorID'                :'int64',
-        'item_code'                 :'int64',
+        'OperatorID'                :object,
+        'item_code'                 :object,
         'stock_cost'                :'float64',
         'soh_qty'                   :'int64',
         'Quantity'                  :'int64',
         'price'                     :'float64',
         'discounted_price'          :'float64',
-        'CardNo'                    :'int64',
+        'CardNo'                    :object,
         'voucher_used'              :'float64'
     },
     
     'Txn' :{
-        'store'                     : 'int64',
+        'store'                     : object,
         'sale_date'                 : object,
-        'TillID'                    : 'int64',
+        'TillID'                    : object,
         'transaction_time'          : object,
-        'TransactionId'             : 'int64',
-        'GlobalTxnID'               : 'int64',
+        'TransactionId'             : object,
+        'GlobalTxnID'               : object,
         'tran_tendered'             : 'float64',
-        'OperatorID'                : 'int64',
-        'item_code'                 : 'int64',
+        'OperatorID'                : object,
+        'item_code'                 : object,
         'stock_cost'                : 'float64',
         'soh_qty'                   : 'int64',
         'Quantity'                  : 'int64',
         'price'                     : 'float64',
         'discounted_price'          : 'float64',
         'discount'                  : 'float64',
-        'CardNo'                    : 'int64',
+        'CardNo'                    : object,
         'voucher_used'              : 'float64'
     },
     
     'Void' : {
-        'store'                     : 'int64',
+        'store'                     : object,
         'sale_date'                 : object,
-        'TillID'                    : 'int64',
+        'TillID'                    : object,
         'transaction_time'          : object,
-        'TransactionId'             : 'int64',
+        'TransactionId'             : object,
         'tran_tendered'             : 'float64',
-        'OperatorID'                : 'int64',
+        'OperatorID'                : object,
         'item_code'                 : 'int64',
         'stock_cost'                : 'float64',
         'soh_qty'                   : 'int64',
@@ -164,7 +164,7 @@ def SelectDtype(FileName):
         'price'                     : 'float64',
         'discounted_price'          : 'float64',
         'void_type'                 : object,
-        'CardNo'                    : 'int64'
+        'CardNo'                    : object
     }
     }
     return DtypeDict[FileName]
