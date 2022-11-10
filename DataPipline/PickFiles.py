@@ -35,6 +35,19 @@ def Read_Data_csv():
 
     final_Name = "_.csv"
     Raw_data_files = ["Txn",'Inv','Refund','Void','Point']
+    
+    
+    
+    if os.path.isfile(os.path.join(RawData,f'Items_test.csv')):
+            os.remove(os.path.join(RawData,f'Items_test.csv'))
+    MergeData(
+                zip_name = os.path.join("DataSource",Read_Data_csv_ForItems())
+                ,csv_name = Read_Data_csv_ForItems().replace('zip','csv')
+                ,Raw_data_file = 'Items'
+                ,final_Name = final_Name
+                ,RawData = RawData
+              )
+    
     for Raw_data_file in Raw_data_files:
 
         # 篩選檔案
@@ -53,16 +66,10 @@ def Read_Data_csv():
         for zip_name,csv_name in zip(zip_names,csv_names):
             MergeData(zip_name,csv_name,Raw_data_file,final_Name,RawData)
             
-        if os.path.isfile(os.path.join(RawData,f'Items_test.csv')):
-            os.remove(os.path.join(RawData,f'Items_test.csv'))
+            
+            
 
-        MergeData(
-                    zip_name = os.path.join("DataSource",Read_Data_csv_ForItems())
-                    ,csv_name = Read_Data_csv_ForItems().replace('zip','csv')
-                    ,Raw_data_file = 'Items'
-                    ,final_Name = final_Name
-                    ,RawData = RawData
-                  )
+
 
 def MergeData(zip_name,csv_name,Raw_data_file,final_Name,RawData):
     chunksize = 10 ** 6
@@ -79,7 +86,11 @@ def MergeData(zip_name,csv_name,Raw_data_file,final_Name,RawData):
             
             
             for chunk in df:
-                chunk = chunk.apply(lambda x:x.replace(' ',''))
+                chunk = chunk.apply(lambda x:x.str.replace(' ',''))
+                if Raw_data_file !='Items':
+                    chunk['PrimaryKey']=chunk['store'] + chunk['TillID'] + chunk['TransactionId'] + chunk['OperatorID']  + chunk['transaction_time'] + chunk['transaction_time']
+                    chunk['PrimaryKey'] =chunk['PrimaryKey'].str.replace(' ','' )
+                
                 chunk.to_csv(os.path.join(RawData,f'{Raw_data_file}{final_Name}') 
                              ,mode = 'a+'
                              ,encoding = "utf-8-sig"

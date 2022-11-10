@@ -1,1 +1,12 @@
-from DataPipline.PickFiles import *from ControlSQL.CreatTable import *Read_Data_csv()AutoCreatTable()Files = [_ for _ in os.listdir(os.path.join('RawData')) if _.split('.')[1]=='csv']FilesPath = [os.path.join('RawData',_) for _ in Files if _.split('.')[1]=='csv']test = SQL(Files,FilesPath)test.AutoCreatTable()test.InsertData()
+import pandas as pd
+import os
+from tqdm import tqdm
+
+from time import sleep
+
+
+
+    
+    
+
+       

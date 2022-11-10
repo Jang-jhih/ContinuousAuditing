@@ -4,7 +4,7 @@ import datetime
 import sqlite3
 import os
 import pandas as pd
-
+from tqdm import tqdm
 
 
 
@@ -13,39 +13,38 @@ class SQL:
     def __init__(self,Files,FilesPath):
         self.Files = Files
         self.FilesPath = FilesPath
+        self.con = sqlite3.connect('DW.db')
+        self.cursor = self.con.cursor()
+        self.ChoseKeys = [_ .split('_')[0]for _ in self.Files]
     
-    def AutoCreatTable(self):
+    def AutoCreatTable(self,PrimaryKey=None):
         Files = self.Files
         FilesPath = self.FilesPath
+        ChoseKeys = self.ChoseKeys
         
-
-        DataName = []
-        Columns = []
-        dtype = []
-        for File,FilePath in zip(Files,FilesPath):
-            ChoseKey = File.split('_')[0]
-            
-            TMPFilePath = pd.read_csv(FilePath,nrows = 1 ,dtype=SelectDtype(ChoseKey))
+        for file,filepath,ChoseKey in zip(Files,FilesPath,ChoseKeys):
+    
+            DataName = []
+            Columns = []
+            dtype = []
+            TMPFilePath = pd.read_csv(filepath,nrows = 1 ,dtype=SelectDtype(ChoseKey) )
             for columns,Dtype in zip(TMPFilePath.columns,TMPFilePath.dtypes):
-                DataName.append(File)
+                DataName.append(file)
                 Columns.append(columns)
                 dtype.append(Dtype)
-    
-        df = pd.DataFrame({"DataName":DataName,"Columns":Columns,"dtype":dtype})
-        df.set_index("DataName", inplace = True)
-        df = df.astype(str)
-    
-        for filename in Files:
-            print(filename)
-            # ChoseKey = filename.split('_')[0]1
-        # key = 'Inv_test.csv'
+        
+            df = pd.DataFrame({"DataName":DataName,"Columns":Columns,"dtype":dtype})
+            df.set_index("DataName", inplace = True)
+            df = df.astype(str)
+        
+        
     
             Columns = []
-            for key,values in df.loc[filename]['Columns'].items():
+            for key,values in df.loc[file]['Columns'].items():
                 Columns.append(values)
     
             dtype = []
-            for key,values in df.loc[filename]['dtype'].items():
+            for key,values in df.loc[file]['dtype'].items():
                 dtype.append(values)
     
             SqlSchema = []
@@ -54,8 +53,13 @@ class SQL:
             
             SqlSchema = str(tuple(SqlSchema)).replace("'",'')
             
-            TableName = filename.split('_')[0]
-            SQL = f'CREATE TABLE IF NOT EXISTS `{TableName}` {SqlSchema}'
+            # TableName = file.split('_')[0]
+            SQL = f'CREATE TABLE IF NOT EXISTS `{ChoseKey}` {SqlSchema}'
+            
+            if PrimaryKey != None:
+                SQL=SQL.replace('`PrimaryKey` object','`PrimaryKey` object PRIMARY KEY ASC')
+            
+            SQL=SQL.replace(',',',\n')
             
             ChangeType_Old = ['float64','int64','object']
             ChangeType_New = ['float','int','varchar(255)']
@@ -63,31 +67,32 @@ class SQL:
             for old,new in zip(ChangeType_Old,ChangeType_New):
                 SQL = SQL.replace(old,new)
                 
-            con = sqlite3.connect('DW.db')
-            cursor = con.cursor()
-            cursor.execute(SQL)
-    
+            print(SQL)
+            # con = sqlite3.connect('DW.db')
+            # cursor = con.cursor()
+            self.cursor.execute(SQL)
+            
+            # if PrimaryKey != None:
+            #     cursor.execute(f"ALTER TABLE {TableName} ADD PRIMARY KEY ({PrimaryKey});")
+
+                
+                
     def InsertData(self):
         Files = self.Files
-        dfs = self.FilesPath
+        FilesPath = self.FilesPath
+        ChoseKeys = self.ChoseKeys
         
-        con = sqlite3.connect('DW.db')
-        cursor = con.cursor()
-        
-        
-        # Files = [_ for _ in os.listdir(os.path.join('RawData')) if _.split('.')[1] == 'csv']
-        # dfs = [os.path.join('RawData',_) for _ in Files if _.split('.')[1] == 'csv']
+        for file,filepath,ChoseKey in zip(Files,FilesPath,ChoseKeys):
         
         
-        chunksize = 10 ** 6
-        for File,Dfpath in zip(Files,dfs):
-            print(File,Dfpath)
-            ChoseKey = File.split('_')[0]
-            
-            df = pd.read_csv(Dfpath
-                               , chunksize=chunksize
-                             )
-            
+            chunksize = 10 ** 6
+            # ChoseKey = file.split('_')[0]
+            # print(f'塞入{ChoseKey}')
+            df = pd.read_csv(filepath
+                                , chunksize=chunksize
+                                ,low_memory=False
+                              )
+
             for chunk in df:
                 chunk.fillna('', inplace=True)
                 
@@ -99,29 +104,31 @@ class SQL:
                 VALUES_ = ETLforString(["'"],[""],VALUES_)
                 Columns = ETLforString(["'"],["`"],str(tuple(chunk.columns)))
             
+                
                 chunk.to_sql(ChoseKey,
-                              con=con, 
+                              con=self.con, 
                               index=False, 
                               if_exists='append')
+
     
 
 def SelectDtype(FileName):
     DtypeDict = {
     'Inv' : {
-        'store'               : object    ,  
-        'sale_date'           : object   ,   
-        'TillID'              : object    ,  
-        'transaction_time'    : object   ,   
-        'TransactionId'       : object    ,  
-        'GlobalTxnID'         : object    ,  
-        'OperatorID'          : object    ,  
-        'tran_tendered'       : 'float64'  ,    
-        'MediaType'           : object    ,  
-        'Tendered'            : 'float64'  ,    
-        'CardNo'              : object    ,  
-        'voucher_used'        : 'float64'  ,    
-        'credit_card'         : object  
-    },
+        'store'               : object,  
+        'sale_date'           : object,   
+        'TillID'              : object,  
+        'transaction_time'    : object,   
+        'TransactionId'       : object,  
+        'GlobalTxnID'         : object,  
+        'OperatorID'          : object,  
+        'tran_tendered'       : 'float64',
+        'MediaType'           : object,  
+        'Tendered'            : 'float64',    
+        'CardNo'              : object,  
+        'voucher_used'        : 'float64',    
+        'credit_card'         : object
+         },
     
     'Items' : {
         'item_code'                : object,
