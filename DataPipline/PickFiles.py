@@ -11,7 +11,18 @@ import pandas as pd
 # 用於提取時間區間
 # def date_range(start_date, end_date):
 #     return [dt.date() for dt in rrule(DAILY, dtstart=start_date, until=end_date)]
-
+def MergeStoreNumber(left):
+    right = pd.read_excel(os.path.join('RawData','店總表.xlsx')
+                       ,usecols = ['代號', '門市']) 
+    right['代號'] = right['代號'].str.replace('S','').astype(int)
+    left['store']=left['store'].astype(int)
+    left = pd.merge(left=left
+             ,right=right
+             ,left_on='store'
+             ,right_on='代號'
+             )
+    del left['代號']
+    return left
 
 def ETLforString(OldSing,NewSing,String):
     for old,new in zip(OldSing,NewSing):

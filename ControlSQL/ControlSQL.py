@@ -10,9 +10,10 @@ from tqdm import tqdm
 
 
 class SQL:
-    def __init__(self,Files,FilesPath):
+    def __init__(self,Files,FilesPath,TEST=False):
         self.Files = Files
         self.FilesPath = FilesPath
+        self.TEST = TEST
         self.con = sqlite3.connect('DW.db')
         self.cursor = self.con.cursor()
         self.ChoseKeys = [_ .split('_')[0]for _ in self.Files]
@@ -23,11 +24,26 @@ class SQL:
         ChoseKeys = self.ChoseKeys
         
         for file,filepath,ChoseKey in zip(Files,FilesPath,ChoseKeys):
-    
+            if self.TEST == True:
+                print(f'{file}')
+            
             DataName = []
             Columns = []
             dtype = []
+            
             TMPFilePath = pd.read_csv(filepath,nrows = 1 ,dtype=SelectDtype(ChoseKey) )
+            
+            def CheckStoreColumns(Columns,store = 'store'):
+                for Column in Columns:
+                    if Column == store:
+                        return True
+                return False
+            
+            if CheckStoreColumns(TMPFilePath.columns) == True:
+                TMPFilePath = MergeStoreNumber(left=TMPFilePath)
+            
+   
+            
             for columns,Dtype in zip(TMPFilePath.columns,TMPFilePath.dtypes):
                 DataName.append(file)
                 Columns.append(columns)
