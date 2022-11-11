@@ -10,123 +10,128 @@ from tqdm import tqdm
 
 
 class SQL:
-    def __init__(self,Files,FilesPath,TEST=False):
-        self.Files = Files
-        self.FilesPath = FilesPath
+    def __init__(self,file,filepath,ConcatTable,TEST=False):
+        self.filepath = filepath
+        self.file = file
         self.TEST = TEST
         self.con = sqlite3.connect('DW.db')
         self.cursor = self.con.cursor()
-        self.ChoseKeys = [_ .split('_')[0]for _ in self.Files]
+        self.ChoseKey = self.file.split('_')[0]
+        self.ConcatTable = ConcatTable
+        # self.ConcatTable = pd.read_excel(os.path.join('RawData','店總表.xlsx')
+                       # ,usecols = ['代號', '門市']) 
+    
+    
     
     def AutoCreatTable(self,PrimaryKey=None):
-        Files = self.Files
-        FilesPath = self.FilesPath
-        ChoseKeys = self.ChoseKeys
+        file = self.file
+        filepath = self.filepath
+        ChoseKey = self.ChoseKey
         
-        for file,filepath,ChoseKey in zip(Files,FilesPath,ChoseKeys):
-            if self.TEST == True:
-                print(f'{file}')
-            
-            DataName = []
-            Columns = []
-            dtype = []
-            
-            TMPFilePath = pd.read_csv(filepath,nrows = 1 ,dtype=SelectDtype(ChoseKey) )
-            
-            def CheckStoreColumns(Columns,store = 'store'):
-                for Column in Columns:
-                    if Column == store:
-                        return True
-                return False
-            
-            if CheckStoreColumns(TMPFilePath.columns) == True:
-                TMPFilePath = MergeStoreNumber(left=TMPFilePath)
-            
+        # for file,filepath,ChoseKey in zip(Files,FilesPath,ChoseKeys):
+        if self.TEST == True:
+            print(f'{file}')
+        
+        DataName = []
+        Columns = []
+        dtype = []
+        
+        TMPFilePath = pd.read_csv(filepath,nrows = 1 ,dtype=SelectDtype(ChoseKey) )
+        
+        def CheckStoreColumns(Columns,store = 'store'):
+            for Column in Columns:
+                if Column == store:
+                    return True
+            return False
+        
+        if CheckStoreColumns(TMPFilePath.columns) == True:
+            TMPFilePath = MergeStoreNumber(left=TMPFilePath,right=self.ConcatTable)
+        
    
-            
-            for columns,Dtype in zip(TMPFilePath.columns,TMPFilePath.dtypes):
-                DataName.append(file)
-                Columns.append(columns)
-                dtype.append(Dtype)
         
-            df = pd.DataFrame({"DataName":DataName,"Columns":Columns,"dtype":dtype})
-            df.set_index("DataName", inplace = True)
-            df = df.astype(str)
+        for columns,Dtype in zip(TMPFilePath.columns,TMPFilePath.dtypes):
+            DataName.append(file)
+            Columns.append(columns)
+            dtype.append(Dtype)
+    
+        df = pd.DataFrame({"DataName":DataName,"Columns":Columns,"dtype":dtype})
+        df.set_index("DataName", inplace = True)
+        df = df.astype(str)
+    
+    
+
+        Columns = []
+        for key,values in df.loc[file]['Columns'].items():
+            Columns.append(values)
+
+        dtype = []
+        for key,values in df.loc[file]['dtype'].items():
+            dtype.append(values)
+
+        SqlSchema = []
+        for a,b in zip(Columns,dtype):
+            SqlSchema.append(f'`{a}` {b}')
         
+        SqlSchema = str(tuple(SqlSchema)).replace("'",'')
         
-    
-            Columns = []
-            for key,values in df.loc[file]['Columns'].items():
-                Columns.append(values)
-    
-            dtype = []
-            for key,values in df.loc[file]['dtype'].items():
-                dtype.append(values)
-    
-            SqlSchema = []
-            for a,b in zip(Columns,dtype):
-                SqlSchema.append(f'`{a}` {b}')
+        # TableName = file.split('_')[0]
+        SQL = f'CREATE TABLE IF NOT EXISTS `{ChoseKey}` {SqlSchema}'
+        
+        if PrimaryKey != None:
+            SQL=SQL.replace('`PrimaryKey` object','`PrimaryKey` object PRIMARY KEY ASC')
+        
+        SQL=SQL.replace(',',',\n')
+        
+        ChangeType_Old = ['float64','int64','object']
+        ChangeType_New = ['float','int','varchar(255)']
+        
+        for old,new in zip(ChangeType_Old,ChangeType_New):
+            SQL = SQL.replace(old,new)
             
-            SqlSchema = str(tuple(SqlSchema)).replace("'",'')
-            
-            # TableName = file.split('_')[0]
-            SQL = f'CREATE TABLE IF NOT EXISTS `{ChoseKey}` {SqlSchema}'
-            
-            if PrimaryKey != None:
-                SQL=SQL.replace('`PrimaryKey` object','`PrimaryKey` object PRIMARY KEY ASC')
-            
-            SQL=SQL.replace(',',',\n')
-            
-            ChangeType_Old = ['float64','int64','object']
-            ChangeType_New = ['float','int','varchar(255)']
-            
-            for old,new in zip(ChangeType_Old,ChangeType_New):
-                SQL = SQL.replace(old,new)
-                
-            print(SQL)
-            # con = sqlite3.connect('DW.db')
-            # cursor = con.cursor()
-            self.cursor.execute(SQL)
-            
-            # if PrimaryKey != None:
-            #     cursor.execute(f"ALTER TABLE {TableName} ADD PRIMARY KEY ({PrimaryKey});")
+        print(SQL)
+        # con = sqlite3.connect('DW.db')
+        # cursor = con.cursor()
+        self.cursor.execute(SQL)
+        
+        # if PrimaryKey != None:
+        #     cursor.execute(f"ALTER TABLE {TableName} ADD PRIMARY KEY ({PrimaryKey});")
 
                 
                 
     def InsertData(self):
-        Files = self.Files
-        FilesPath = self.FilesPath
-        ChoseKeys = self.ChoseKeys
+        file = self.file
+        filepath = self.filepath
+        ChoseKey = self.ChoseKey
         
-        for file,filepath,ChoseKey in zip(Files,FilesPath,ChoseKeys):
+        # for file,filepath,ChoseKey in zip(Files,FilesPath,ChoseKeys):
         
-        
-            chunksize = 10 ** 6
-            # ChoseKey = file.split('_')[0]
-            # print(f'塞入{ChoseKey}')
-            df = pd.read_csv(filepath
-                                , chunksize=chunksize
-                                ,low_memory=False
-                              )
-
-            for chunk in df:
-                chunk.fillna('', inplace=True)
-                
-                VALUES_ = []
-                for _ in range(0,len(chunk.columns)):
-                    VALUES_.append('?')
-                
-                VALUES_ = str(tuple(VALUES_))
-                VALUES_ = ETLforString(["'"],[""],VALUES_)
-                Columns = ETLforString(["'"],["`"],str(tuple(chunk.columns)))
-            
-                
-                chunk.to_sql(ChoseKey,
-                              con=self.con, 
-                              index=False, 
-                              if_exists='append')
-
     
+        chunksize = 10 ** 6
+        # ChoseKey = file.split('_')[0]
+        # print(f'塞入{ChoseKey}')
+        df = pd.read_csv(filepath
+                            , chunksize=chunksize
+                            ,low_memory=False
+                          )
+
+        for chunk in df:
+            chunk.fillna('', inplace=True)
+            
+            VALUES_ = []
+            for _ in range(0,len(chunk.columns)):
+                VALUES_.append('?')
+            
+            VALUES_ = str(tuple(VALUES_))
+            VALUES_ = ETLforString(["'"],[""],VALUES_)
+            Columns = ETLforString(["'"],["`"],str(tuple(chunk.columns)))
+        
+            
+            chunk.to_sql(ChoseKey,
+                          con=self.con, 
+                          index=False, 
+                          if_exists='append')
+
+
 
 def SelectDtype(FileName):
     DtypeDict = {

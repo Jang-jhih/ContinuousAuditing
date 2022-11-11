@@ -6,15 +6,20 @@ import glob
 import zipfile
 import sys
 import pandas as pd
+from tqdm import trange
+
+
+
+
 
 
 # 用於提取時間區間
 # def date_range(start_date, end_date):
 #     return [dt.date() for dt in rrule(DAILY, dtstart=start_date, until=end_date)]
-def MergeStoreNumber(left):
-    right = pd.read_excel(os.path.join('RawData','店總表.xlsx')
-                       ,usecols = ['代號', '門市']) 
-    right['代號'] = right['代號'].str.replace('S','').astype(int)
+def MergeStoreNumber(left,right):
+    
+    right['代號'] = right['代號'].astype(str).str.replace('S','')
+    right['代號'] = right['代號'].astype(int)
     left['store']=left['store'].astype(int)
     left = pd.merge(left=left
              ,right=right
