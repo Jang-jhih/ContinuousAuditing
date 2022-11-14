@@ -114,3 +114,13 @@ def MergeData(zip_name,csv_name,Raw_data_file,final_Name,RawData):
 
 
 
+
+def WriteSchema(SQL,Description):
+    path = os.path.join('SQL')
+    if not os.path.isdir(path):
+        os.mkdir(path)
+        
+    
+    path = open(os.path.join(path,f'{Description}.sql'),'w')
+    path.write(SQL)
+    path.close()

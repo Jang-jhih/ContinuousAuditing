@@ -89,6 +89,7 @@ class SQL:
             SQL = SQL.replace(old,new)
             
         print(SQL)
+        WriteSQL(SQL,Schema)
         # con = sqlite3.connect('DW.db')
         # cursor = con.cursor()
         self.cursor.execute(SQL)

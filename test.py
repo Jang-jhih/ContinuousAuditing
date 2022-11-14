@@ -23,6 +23,3 @@ with tqdm(total = t, file = sys.stdout) as pbar:
         pbar.set_description('Importing: %d' % (1 + i))
         pbar.update(1)
 
- 
-
-
