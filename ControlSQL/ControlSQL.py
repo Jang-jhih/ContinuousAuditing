@@ -5,7 +5,8 @@ import sqlite3
 import os
 import pandas as pd
 from tqdm import tqdm
-
+import mysql.connector
+from mysql.connector import Error
 
 
 
@@ -14,12 +15,21 @@ class SQL:
         self.filepath = filepath
         self.file = file
         self.TEST = TEST
-        self.con = sqlite3.connect('DW.db')
-        self.cursor = self.con.cursor()
+        
+   
         self.ChoseKey = self.file.split('_')[0]
         self.ConcatTable = ConcatTable
         # self.ConcatTable = pd.read_excel(os.path.join('RawData','店總表.xlsx')
                        # ,usecols = ['代號', '門市']) 
+               
+        self.pattern = pattern
+        
+
+        self.con = sqlite3.connect('DW.db')
+        self.cursor = self.con.cursor()
+            
+
+    
     
     
     
@@ -89,7 +99,7 @@ class SQL:
             SQL = SQL.replace(old,new)
             
         print(SQL)
-        WriteSQL(SQL,Schema)
+        WriteSQL(SQL,'Schema')
         # con = sqlite3.connect('DW.db')
         # cursor = con.cursor()
         self.cursor.execute(SQL)
@@ -103,13 +113,9 @@ class SQL:
         file = self.file
         filepath = self.filepath
         ChoseKey = self.ChoseKey
-        
-        # for file,filepath,ChoseKey in zip(Files,FilesPath,ChoseKeys):
-        
+
     
         chunksize = 10 ** 6
-        # ChoseKey = file.split('_')[0]
-        # print(f'塞入{ChoseKey}')
         df = pd.read_csv(filepath
                             , chunksize=chunksize
                             ,low_memory=False
@@ -132,111 +138,38 @@ class SQL:
                           index=False, 
                           if_exists='append')
 
-
-
-def SelectDtype(FileName):
-    DtypeDict = {
-    'Inv' : {
-        'store'               : object,  
-        'sale_date'           : object,   
-        'TillID'              : object,  
-        'transaction_time'    : object,   
-        'TransactionId'       : object,  
-        'GlobalTxnID'         : object,  
-        'OperatorID'          : object,  
-        'tran_tendered'       : 'float64',
-        'MediaType'           : object,  
-        'Tendered'            : 'float64',    
-        'CardNo'              : object,  
-        'voucher_used'        : 'float64',    
-        'credit_card'         : object
-         },
+def LoginMysql(localhost='localhost',
+               database='DataWarehouse',
+               user='root',
+               password='Aaa710258' ):
+    try:
+        # 連接 MySQL/MariaDB 資料庫
+        connection = mysql.connector.connect(
+            host=localhost,          # 主機名稱
+            database=database, # 資料庫名稱
+            user=user,        # 帳號
+            password=password)  # 密碼
     
-    'Items' : {
-        'item_code'                : object,
-        'item_cdesc'               : object,
-        'cost'                     : 'float64',
-        'own_label'                : 'float64',
-        'vendor_code'              : object,
-        'sup_code'                 : object,
-        'sup_cname'                : object,
-        'dept_code'                : object,
-        'class_code'               : object,
-        'subclass_code'            : object
-    },
+        if connection.is_connected():
     
-    'Point' :{
-        'store'                     : object,
-        'sale_date'                 : object,
-        'TillID'                    : object,
-        'transaction_time'          : object,
-        'TransactionId'             : object,
-        'GlobalTxnID'               : object,
-        'OperatorID'                : object,
-        'tran_tendered'             : 'float64',
-        'CardNo'                    : object,
-        'promotion_id'              : object,
-        'prom_desc'                 : object,
-        'points_earned'             : 'float64'
-    },
+            # 顯示資料庫版本
+            db_Info = connection.get_server_info()
+            print("資料庫版本：", db_Info)
     
+            # 顯示目前使用的資料庫
+            cursor = connection.cursor()
+            cursor.execute("SELECT DATABASE();")
+            record = cursor.fetchone()
+            print("目前使用的資料庫：", record)
     
-    'Refund' : {
-        'store'                     :object,
-        'sale_date'                 :object,
-        'TillID'                    :object,
-        'transaction_time'          :object,
-        'TransactionId'             :object,
-        'RsGlobalTxnID'             :object,
-        'tran_tendered'             :'float64',
-        'OperatorID'                :object,
-        'item_code'                 :object,
-        'stock_cost'                :'float64',
-        'soh_qty'                   :'int64',
-        'Quantity'                  :'int64',
-        'price'                     :'float64',
-        'discounted_price'          :'float64',
-        'CardNo'                    :object,
-        'voucher_used'              :'float64'
-    },
+    except Error as e:
+        print("資料庫連接失敗：", e)
     
-    'Txn' :{
-        'store'                     : object,
-        'sale_date'                 : object,
-        'TillID'                    : object,
-        'transaction_time'          : object,
-        'TransactionId'             : object,
-        'GlobalTxnID'               : object,
-        'tran_tendered'             : 'float64',
-        'OperatorID'                : object,
-        'item_code'                 : object,
-        'stock_cost'                : 'float64',
-        'soh_qty'                   : 'int64',
-        'Quantity'                  : 'int64',
-        'price'                     : 'float64',
-        'discounted_price'          : 'float64',
-        'discount'                  : 'float64',
-        'CardNo'                    : object,
-        'voucher_used'              : 'float64'
-    },
+    return connection
     
-    'Void' : {
-        'store'                     : object,
-        'sale_date'                 : object,
-        'TillID'                    : object,
-        'transaction_time'          : object,
-        'TransactionId'             : object,
-        'tran_tendered'             : 'float64',
-        'OperatorID'                : object,
-        'item_code'                 : 'int64',
-        'stock_cost'                : 'float64',
-        'soh_qty'                   : 'int64',
-        'Quantity'                  : 'int64',
-        'price'                     : 'float64',
-        'discounted_price'          : 'float64',
-        'void_type'                 : object,
-        'CardNo'                    : object
-    }
-    }
-    return DtypeDict[FileName]
+    # finally:
+    #     if (connection.is_connected()):
+    #         cursor.close()
+    #         connection.close()
+    #         print("資料庫連線已關閉")
 
