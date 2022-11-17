@@ -4,10 +4,11 @@ import datetime
 import sqlite3
 import os
 import pandas as pd
-from tqdm import tqdm
+# from tqdm import tqdm
 import mysql.connector
 from mysql.connector import Error
-
+# import pandas as pd
+import sqlalchemy
 
 
 class SQL:
